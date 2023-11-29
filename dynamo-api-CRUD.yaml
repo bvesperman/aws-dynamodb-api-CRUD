@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: An Amazon API Gateway REST API that integrates with an Amazon DynamoDB table that contains user data.
+Resources:
+  MyUserTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: user
+      # A list of attributes that describe the key schema for the DynamoDB table and indexes.
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      #  - AttributeName: firstName
+      #    AttributeType: S
+      #  - AttributeName: lastName
+      #    AttributeType: S
+      #  - AttributeName: profilePic
+      #    AttributeType: B
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+

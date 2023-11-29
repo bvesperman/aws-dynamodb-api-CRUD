@@ -1,0 +1,1 @@
+ aws cloudformation create-stack --stack-name dynamo-api --template-body file://dynamo-api-CRUD.yaml
