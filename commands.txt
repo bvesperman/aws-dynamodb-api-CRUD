@@ -12,7 +12,7 @@ sam validate --template-file dynamo-api-CRUD.yaml
 aws apigateway get-export --parameters extensions='apigateway' --rest-api-id tshlk5z2i5 --stage-name v1 --export-type oas30 go.yaml
 
 
-curl --location 'https://tshlk5z2i5.execute-api.us-east-1.amazonaws.com/v1/user' \
+curl --location 'https://pkaotlvdi3.execute-api.us-east-1.amazonaws.com/v1/user' \
 --header 'Content-Type: application/json' \
 --data '{
     "userName":"bvesperman",
@@ -21,9 +21,9 @@ curl --location 'https://tshlk5z2i5.execute-api.us-east-1.amazonaws.com/v1/user'
     "postalCode":"53705"
 }'
 
-curl --location 'https://tshlk5z2i5.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' 
+curl --location 'https://pkaotlvdi3.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' 
 
-curl --location --request PUT 'https://tshlk5z2i5.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' \
+curl --location --request PUT 'https://pkaotlvdi3.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' \
 --header 'Content-Type: application/json' \
 --data '{
     "firstName":"brian",
@@ -31,9 +31,9 @@ curl --location --request PUT 'https://tshlk5z2i5.execute-api.us-east-1.amazonaw
     "postalCode":"55555"
 }'
 
-curl --location 'https://tshlk5z2i5.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' 
+curl --location 'https://pkaotlvdi3.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' 
 
-curl --location --request DELETE 'https://j1p230vsf4.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' \
+curl --location --request DELETE 'https://pkaotlvdi3.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' \
 
-curl --location 'https://tshlk5z2i5.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' 
+curl --location 'https://pkaotlvdi3.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' 
 
