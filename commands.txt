@@ -8,3 +8,44 @@ aws cloudformation delete-stack --stack-name dynamo-api
 
 sam deploy --template-file dynamo-api-CRUD.yaml --stack-name dynamo-api
 sam validate --template-file dynamo-api-CRUD.yaml
+
+aws apigateway get-export --parameters extensions='apigateway' --rest-api-id 2d55hrolli --stage-name v1 --export-type oas30 go.yaml
+
+
+curl --location 'https://2d55hrolli.execute-api.us-east-1.amazonaws.com/v1/user' \
+--header 'Content-Type: application/json' \
+--data '{
+    "userName":"bvesperman",
+    "firstName":"brian",
+    "lastName":"vesperman",
+    "postalCode":"53705"
+}'
+
+curl --location 'https://2d55hrolli.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' 
+
+curl --location --request PUT 'https://2d55hrolli.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' \
+--header 'Content-Type: application/json' \
+--data '{
+    "firstName":"brian",
+    "lastName":"vesperman-smith",
+    "postalCode":"55555"
+}'
+
+curl --location 'https://2d55hrolli.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' 
+
+
+{
+    "TableName": "user",
+    "Key": {
+        "userName_pk0": {
+            "S": "$util.urlDecode($input.params('userName'))"
+        }
+    },
+    "UpdateExpression": "set postalCode = :pc, firstName = :fn, lastName = :ln",
+    "ExpressionAttributeValues": {
+        ":pc": {"N": "$input.path('$.postalCode')"},
+        ":fn": {"S": "$input.path('$.firstName')"},
+        ":ln": {"S": "$input.path('$.lastName')"}
+    },
+    "ReturnValues": "ALL_NEW"
+}

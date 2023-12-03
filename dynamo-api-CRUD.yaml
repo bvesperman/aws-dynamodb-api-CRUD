@@ -20,21 +20,24 @@ Resources:
       TableName: user
       # A list of attributes that describe the key schema for the DynamoDB table and indexes.
       AttributeDefinitions:
-        - AttributeName: id
+        #- AttributeName: id_pk0
+        #  AttributeType: S
+        - AttributeName: userName_pk0
           AttributeType: S
-        - AttributeName: userName
-          AttributeType: S
+        #- AttributeName: lastName_sk0
+        #  AttributeType: S
+
         #- AttributeName: postalCode
         #  AttributeType: N
 
         #- AttributeName: firstName
         #  AttributeType: S
-        #- AttributeName: lastName
-        #  AttributeType: S
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
 
+      KeySchema:
+        - AttributeName: userName_pk0
+          KeyType: HASH
+        #- AttributeName: lastName_sk0
+        #  KeyType: RANGE
         #- AttributeName: userName
         #  AttributeType: S
         #- AttributeName: firstName
@@ -47,7 +50,7 @@ Resources:
       GlobalSecondaryIndexes:
         - IndexName: userName-Index
           KeySchema:
-            - AttributeName: userName
+            - AttributeName: userName_pk0
               KeyType: HASH
           Projection:
             ProjectionType: INCLUDE
@@ -79,6 +82,8 @@ Resources:
                 Action:
                   - 'dynamodb:PutItem'
                   - 'dynamodb:Query'
+                  - 'dynamodb:UpdateItem'
+                  - 'dynamodb:DeleteItem'
                 # Including * in the resource Arn allows access to the DynamoDB table and indexes
                 Resource: !Sub
                   - '${varTableArn}*'
@@ -130,7 +135,7 @@ Resources:
           # Using single-line, stringified JSON as the mapping template
           # Example body when making API request: {"artist": "The Beatles", "album": "Abbey Road"}
           # Use the unique id of the API context variable (eg: $context.requestId) as the DynamoDB item id
-          application/json: "{\"TableName\":\"user\",\"Item\":{\"id\":{\"S\":\"$context.requestId\"},\"userName\":{\"S\":\"$input.path('$.userName')\"},\"postalCode\":{\"N\":\"$input.path('$.postalCode')\"},\"firstName\":{\"S\":\"$input.path('$.firstName')\"},\"lastName\":{\"S\":\"$input.path('$.lastName')\"}}}"
+          application/json: "{\"TableName\":\"user\",\"Item\":{\"id\":{\"S\":\"$context.requestId\"},\"userName_pk0\":{\"S\":\"$input.path('$.userName')\"},\"postalCode\":{\"N\":\"$input.path('$.postalCode')\"},\"firstName\":{\"S\":\"$input.path('$.firstName')\"},\"lastName\":{\"S\":\"$input.path('$.lastName')\"}}}"
         IntegrationResponses:
           - StatusCode: '200'
             ResponseTemplates:
@@ -171,7 +176,7 @@ Resources:
           # Using single-line, stringified JSON as the mapping template
           # Use $util.urlDecode($input.params('pathname')) to decode if the url path value contains spaces
           # A + or %20 may be used as a space in the url
-          application/json: "{\"TableName\":\"user\",\"IndexName\":\"userName-Index\",\"KeyConditionExpression\":\"userName=:v1\",\"ExpressionAttributeValues\":{\":v1\":{\"S\":\"$util.urlDecode($input.params('userName'))\"}}}"
+          application/json: "{\"TableName\":\"user\",\"IndexName\":\"userName-Index\",\"KeyConditionExpression\":\"userName_pk0=:v1\",\"ExpressionAttributeValues\":{\":v1\":{\"S\":\"$util.urlDecode($input.params('userName'))\"}}}"
         IntegrationResponses:
           - StatusCode: '200'
             ResponseTemplates:
@@ -179,9 +184,45 @@ Resources:
               # Using single-line Velocity Template Language (VTL) code as the mapping template
               # \n represents a new line, \t represents a tab character, \" represents a single quote character
               # Example response: {"user":[{"id":"38bfb57e-a5a8-4fed-9a4f-391d66d5e987","artist":"The Beatles","album":"Abbey Road"}]}
-              application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"user\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"id\": \"$field.id.S\",\n\t\t\t\"userName\": \"$field.userName.S\",\n\t\t\t\"firstName\": \"$field.firstName.S\",\n\t\t\t\"lastName\": \"$field.lastName.S\",\n\t\t\t\"postalCode\": \"$field.postalCode.N\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"user\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"userName\": \"$field.userName_pk0.S\",\n\t\t\t\"firstName\": \"$field.firstName.S\",\n\t\t\t\"lastName\": \"$field.lastName.S\",\n\t\t\t\"postalCode\": \"$field.postalCode.N\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
       MethodResponses:
         - StatusCode: '200'
+
+
+  UserMethodUpdate:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref UserNameResource
+      HttpMethod: PUT
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      RequestParameters:
+        # Determines whether the path parameter (eg: artist) is required
+        method.request.path.userName: true
+      Integration:
+        Type: AWS
+        Credentials: !GetAtt APIGatewayRole.Arn
+        # Should always be POST when integrating with AWS services
+        IntegrationHttpMethod: POST
+        # More info: https://docs.aws.amazon.com/apigateway/api-reference/resource/integration/
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem'
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.userName: method.request.path.userName
+        RequestTemplates:
+          # Build the structure of the request that is sent when calling DynamoDB PutItem
+          # Using single-line, stringified JSON as the mapping template
+          # Example body when making API request: {"artist": "The Beatles", "album": "Abbey Road"}
+          # Use the unique id of the API context variable (eg: $context.requestId) as the DynamoDB item id
+          application/json: "\n{\n    \"TableName\": \"user\",\n    \"Key\": {\n        \"userName_pk0\": {\n            \"S\": \"$util.urlDecode($input.params('userName'))\"\n        }\n    },\n    \"UpdateExpression\": \"set postalCode = :pc, firstName = :fn, lastName = :ln\",\n    \"ExpressionAttributeValues\": {\n        \":pc\": {\"N\": \"$input.path('$.postalCode')\"},\n        \":fn\": {\"S\": \"$input.path('$.firstName')\"},\n        \":ln\": {\"S\": \"$input.path('$.lastName')\"}\n    },\n    \"ReturnValues\": \"ALL_NEW\"\n}"
+        IntegrationResponses:
+          - StatusCode: '200'
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
+        - StatusCode: '200'
+
 
   ApiDeployment:
     Type: 'AWS::ApiGateway::Deployment'
