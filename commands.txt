@@ -1,1 +1,10 @@
- aws cloudformation create-stack --stack-name dynamo-api --template-body file://dynamo-api-CRUD.yaml
+aws cloudformation create-stack --stack-name dynamo-api --template-body file://dynamo-api-CRUD.yaml
+aws cloudformation update-stack --stack-name dynamo-api --template-body file://dynamo-api-CRUD.yaml
+
+aws cloudformation validate-template --template-body file://dynamo-api-CRUD.yaml
+
+aws cloudformation delete-stack --stack-name dynamo-api
+
+
+sam deploy --template-file dynamo-api-CRUD.yaml --stack-name dynamo-api
+sam validate --template-file dynamo-api-CRUD.yaml
