@@ -24,8 +24,8 @@ Resources:
           AttributeType: S
         - AttributeName: userName
           AttributeType: S
-        - AttributeName: postalCode
-          AttributeType: N
+        #- AttributeName: postalCode
+        #  AttributeType: N
 
         #- AttributeName: firstName
         #  AttributeType: S
@@ -45,17 +45,16 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
       GlobalSecondaryIndexes:
-        - IndexName: userName-postalCode-Index
+        - IndexName: userName-Index
           KeySchema:
             - AttributeName: userName
               KeyType: HASH
-            - AttributeName: postalCode
-              KeyType: RANGE
           Projection:
             ProjectionType: INCLUDE
             NonKeyAttributes:
               - lastName
               - firstName
+              - postalCode
           ProvisionedThroughput:
             ReadCapacityUnits: 5
             WriteCapacityUnits: 5
@@ -116,7 +115,7 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref UserResource
       HttpMethod: POST
-      ApiKeyRequired: true
+      ApiKeyRequired: false
       AuthorizationType: NONE
       Integration:
         Type: AWS
@@ -139,18 +138,24 @@ Resources:
       MethodResponses:
         - StatusCode: '200'
 
+  UserNameResource:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref UserResource
+      PathPart: '{userName}'
 
   UserMethodGet:
     Type: 'AWS::ApiGateway::Method'
     Properties:
       RestApiId: !Ref Api
-      ResourceId: !Ref UserResource
+      ResourceId: !Ref UserNameResource
       HttpMethod: GET
-      ApiKeyRequired: true
+      ApiKeyRequired: false
       AuthorizationType: NONE
       RequestParameters:
         # Determines whether the path parameter (eg: artist) is required
-        method.request.path.artist: true
+        method.request.path.userName: true
       Integration:
         Type: AWS
         Credentials: !GetAtt APIGatewayRole.Arn
@@ -160,13 +165,13 @@ Resources:
         Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query'
         PassthroughBehavior: WHEN_NO_TEMPLATES
         RequestParameters:
-          integration.request.path.artist: method.request.path.artist
+          integration.request.path.userName: method.request.path.userName
         RequestTemplates:
           # Build the structure of the request that is sent when calling DynamoDB Query
           # Using single-line, stringified JSON as the mapping template
           # Use $util.urlDecode($input.params('pathname')) to decode if the url path value contains spaces
           # A + or %20 may be used as a space in the url
-          application/json: "{\"TableName\":\"user\",\"IndexName\":\"Artist-Index\",\"KeyConditionExpression\":\"artist=:v1\",\"ExpressionAttributeValues\":{\":v1\":{\"S\":\"$util.urlDecode($input.params('artist'))\"}}}"
+          application/json: "{\"TableName\":\"user\",\"IndexName\":\"userName-Index\",\"KeyConditionExpression\":\"userName=:v1\",\"ExpressionAttributeValues\":{\":v1\":{\"S\":\"$util.urlDecode($input.params('userName'))\"}}}"
         IntegrationResponses:
           - StatusCode: '200'
             ResponseTemplates:
@@ -174,7 +179,7 @@ Resources:
               # Using single-line Velocity Template Language (VTL) code as the mapping template
               # \n represents a new line, \t represents a tab character, \" represents a single quote character
               # Example response: {"user":[{"id":"38bfb57e-a5a8-4fed-9a4f-391d66d5e987","artist":"The Beatles","album":"Abbey Road"}]}
-              application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"user\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"id\": \"$field.id.S\",\n\t\t\t\"artist\": \"$field.artist.S\",\n\t\t\t\"album\": \"$field.album.S\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"user\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"id\": \"$field.id.S\",\n\t\t\t\"userName\": \"$field.userName.S\",\n\t\t\t\"firstName\": \"$field.firstName.S\",\n\t\t\t\"lastName\": \"$field.lastName.S\",\n\t\t\t\"postalCode\": \"$field.postalCode.N\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
       MethodResponses:
         - StatusCode: '200'
 
