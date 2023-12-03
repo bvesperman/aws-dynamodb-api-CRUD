@@ -11,25 +11,7 @@ user table schema:
 | postalCode | Number | |
 
 
-## API Usage
-Create:
-POST
-/v1/user
-Body:
-
-Read
-GET
-/v1/user/{username}
-
-Update
-PUT
-/v1/user/{username}
-
-Delete
-DELETE
-/v1/user/{username}
-
-#Deployment
+## Deployment
 
 sam deploy --template-file dynamo-api-CRUD.yaml --stack-name dynamo-api
 
@@ -51,5 +33,24 @@ Value               https://XXXXXXXXXX.execute-api.us-east-1.amazonaws.com/v1
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
+## API Usage
+Create:
+POST
+/v1/user
+Body:
 
-#Usage
+Read
+GET
+/v1/user/{username}
+
+Update
+PUT
+/v1/user/{username}
+
+Delete
+DELETE
+/v1/user/{username}
+
+
+
+## Usage
