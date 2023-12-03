@@ -18,7 +18,6 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: user
-      # A list of attributes that describe the key schema for the DynamoDB table and indexes.
       AttributeDefinitions:
         - AttributeName: userName_pk0
           AttributeType: S
@@ -65,7 +64,6 @@ Resources:
                   - 'dynamodb:Query'
                   - 'dynamodb:UpdateItem'
                   - 'dynamodb:DeleteItem'
-                # Including * in the resource Arn allows access to the DynamoDB table and indexes
                 Resource: !Sub
                   - '${varTableArn}*'
                   - varTableArn: !GetAtt MyUserTable.Arn
@@ -81,6 +79,8 @@ Resources:
       RestApiId: !Ref Api
       ParentId: !GetAtt Api.RootResourceId
       PathPart: 'user'
+
+
   UserMethodPost:
     Type: 'AWS::ApiGateway::Method'
     Properties:
@@ -96,7 +96,7 @@ Resources:
         Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem'
         PassthroughBehavior: WHEN_NO_TEMPLATES
         RequestTemplates:
-          application/json: "{\"TableName\":\"user\",\"Item\":{\"id\":{\"S\":\"$context.requestId\"},\"userName_pk0\":{\"S\":\"$input.path('$.userName')\"},\"postalCode\":{\"N\":\"$input.path('$.postalCode')\"},\"firstName\":{\"S\":\"$input.path('$.firstName')\"},\"lastName\":{\"S\":\"$input.path('$.lastName')\"}}}"
+          application/json: "{\n    \"TableName\":\"user\",\n    \"Item\":\n    {\n        \"id\":{\"S\":\"$context.requestId\"},\n        \"userName_pk0\":{\"S\":\"$input.path('$.userName')\"},\n        \"postalCode\":{\"N\":\"$input.path('$.postalCode')\"},\n        \"firstName\":{\"S\":\"$input.path('$.firstName')\"},\n        \"lastName\":{\"S\":\"$input.path('$.lastName')\"}\n    }\n}"
         IntegrationResponses:
           - StatusCode: '200'
             ResponseTemplates:
@@ -130,7 +130,7 @@ Resources:
         RequestParameters:
           integration.request.path.userName: method.request.path.userName
         RequestTemplates:
-          application/json: "{\"TableName\":\"user\",\"IndexName\":\"userName-Index\",\"KeyConditionExpression\":\"userName_pk0=:v1\",\"ExpressionAttributeValues\":{\":v1\":{\"S\":\"$util.urlDecode($input.params('userName'))\"}}}"
+          application/json: "{\n    \"TableName\":\"user\",\n    \"IndexName\":\"userName-Index\",\n    \"KeyConditionExpression\":\"userName_pk0=:v1\",\n    \"ExpressionAttributeValues\":\n    {\n        \":v1\":\n        {\"S\":\"$util.urlDecode($input.params('userName'))\"}\n    }\n}"
         IntegrationResponses:
           - StatusCode: '200'
             ResponseTemplates:
@@ -232,3 +232,13 @@ Resources:
       KeyType: API_KEY
       KeyId: !Ref ApiKey
       UsagePlanId: !Ref ApiUsagePlan
+
+Outputs:
+  ApiRootUrl:
+    Description: Root Url of the API
+    Value: !Sub 
+      - 'https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${StageName}'
+      - ApiId: !Ref Api
+  ApiKeyId:
+    Description: API Key Id
+    Value: !Ref ApiKey

@@ -28,3 +28,28 @@ PUT
 Delete
 DELETE
 /v1/user/{username}
+
+#Deployment
+
+sam deploy --template-file dynamo-api-CRUD.yaml --stack-name dynamo-api
+
+or 
+sam deploy --template-file dynamo-api-CRUD.yaml --guided
+
+```
+CloudFormation outputs from deployed stack
+----------------------------------------------------------------------------------------------------------------------------------------------------
+Outputs                                                                                                                                            
+----------------------------------------------------------------------------------------------------------------------------------------------------
+Key                 ApiKeyId                                                                                                                       
+Description         API Key Id                                                                                                                     
+Value               XXXXXXXXXX                                                                                                                     
+
+Key                 ApiRootUrl                                                                                                                     
+Description         Root Url of the API                                                                                                            
+Value               https://XXXXXXXXXX.execute-api.us-east-1.amazonaws.com/v1                                                                      
+----------------------------------------------------------------------------------------------------------------------------------------------------
+```
+
+
+#Usage
