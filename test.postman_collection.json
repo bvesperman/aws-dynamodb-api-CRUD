@@ -1,0 +1,153 @@
+{
+	"info": {
+		"_postman_id": "1d227f46-1382-42b1-a63e-5871b06a965a",
+		"name": "go",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2459119"
+	},
+	"item": [
+		{
+			"name": "https://umhj14oug2.execute-api.us-east-1.amazonaws.com/v1/user",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "pZWILfkJzW39dWsuMwYmz4YtDcwvYWK56MAgJ2T6",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userName\":\"bvesperman\",\n    \"firstName\":\"brian\",\n    \"lastName\":\"vesperman\",\n    \"postalCode\":\"53705\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://pdkls1qofg.execute-api.us-east-1.amazonaws.com/v1/user",
+					"protocol": "https",
+					"host": [
+						"pdkls1qofg",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"v1",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://d2564rhur6.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "pZWILfkJzW39dWsuMwYmz4YtDcwvYWK56MAgJ2T6",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://pdkls1qofg.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman",
+					"protocol": "https",
+					"host": [
+						"pdkls1qofg",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"v1",
+						"user",
+						"bvesperman"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://5cexo4w4kk.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "pZWILfkJzW39dWsuMwYmz4YtDcwvYWK56MAgJ2T6",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"firstName\":\"brian\",\n    \"lastName\":\"vesperman-smith\",\n    \"postalCode\":\"55555\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://pdkls1qofg.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman",
+					"protocol": "https",
+					"host": [
+						"pdkls1qofg",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"v1",
+						"user",
+						"bvesperman"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://5cexo4w4kk.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "k4tx4SV0dWampF8JkM1nq2O3Efv893pC4fOq2Bzc",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://5cexo4w4kk.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman",
+					"protocol": "https",
+					"host": [
+						"5cexo4w4kk",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"v1",
+						"user",
+						"bvesperman"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

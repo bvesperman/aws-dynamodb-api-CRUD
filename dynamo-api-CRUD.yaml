@@ -23,13 +23,7 @@ Parameters:
     Type: Number
     Default: 10
     Description: Number of concurrent requests
-  ApiKeyEnabled:
-    Type: String
-    Default: true
-    AllowedValues: [true, false]
-Conditions:
-  ShouldAPIKeysBeEnabled:
-    !Equals [true, !Ref ApiKeyEnabled]
+
 
 Resources:
   MyUserTable:
@@ -150,7 +144,7 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref UserResource
       HttpMethod: POST
-      ApiKeyRequired: false
+      ApiKeyRequired: true
       AuthorizationType: NONE
       Integration:
         Type: AWS
@@ -172,7 +166,7 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref UserNameResource
       HttpMethod: GET
-      ApiKeyRequired: false
+      ApiKeyRequired: true
       AuthorizationType: NONE
       RequestParameters:
         method.request.path.userName: true
@@ -198,7 +192,7 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref UserNameResource
       HttpMethod: PUT
-      ApiKeyRequired: false
+      ApiKeyRequired: true
       AuthorizationType: NONE
       RequestParameters:
         method.request.path.userName: true
@@ -224,7 +218,7 @@ Resources:
       RestApiId: !Ref Api
       ResourceId: !Ref UserNameResource
       HttpMethod: DELETE
-      ApiKeyRequired: false
+      ApiKeyRequired: true
       AuthorizationType: NONE
       RequestParameters:
         method.request.path.userName: true
