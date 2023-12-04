@@ -11,7 +11,25 @@ Parameters:
     Type: String
     Default: v1
     Description: Name of API stage.
-
+  APIQuota:
+    Type: Number
+    Default: 500
+    Description: API invocations per month
+  APIRateLimit:
+    Type: Number
+    Default: 5
+    Description: Number of requests per second
+  APIBurstLimit:
+    Type: Number
+    Default: 10
+    Description: Number of concurrent requests
+  ApiKeyEnabled:
+    Type: String
+    Default: true
+    AllowedValues: [true, false]
+Conditions:
+  ShouldAPIKeysBeEnabled:
+    !Equals [true, !Ref ApiKeyEnabled]
 
 Resources:
   MyUserTable:
@@ -73,127 +91,6 @@ Resources:
     Properties:
       Name: !Sub '${AppName}'
       ApiKeySourceType: HEADER
-  UserResource:
-    Type: 'AWS::ApiGateway::Resource'
-    Properties:
-      RestApiId: !Ref Api
-      ParentId: !GetAtt Api.RootResourceId
-      PathPart: 'user'
-
-
-  UserMethodPost:
-    Type: 'AWS::ApiGateway::Method'
-    Properties:
-      RestApiId: !Ref Api
-      ResourceId: !Ref UserResource
-      HttpMethod: POST
-      ApiKeyRequired: false
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS
-        Credentials: !GetAtt APIGatewayRole.Arn
-        IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem'
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestTemplates:
-          application/json: "{\n    \"TableName\":\"user\",\n    \"Item\":\n    {\n        \"id\":{\"S\":\"$context.requestId\"},\n        \"userName_pk0\":{\"S\":\"$input.path('$.userName')\"},\n        \"postalCode\":{\"N\":\"$input.path('$.postalCode')\"},\n        \"firstName\":{\"S\":\"$input.path('$.firstName')\"},\n        \"lastName\":{\"S\":\"$input.path('$.lastName')\"}\n    }\n}"
-        IntegrationResponses:
-          - StatusCode: '200'
-            ResponseTemplates:
-              application/json: "{}"
-      MethodResponses:
-        - StatusCode: '200'
-
-  UserNameResource:
-    Type: 'AWS::ApiGateway::Resource'
-    Properties:
-      RestApiId: !Ref Api
-      ParentId: !Ref UserResource
-      PathPart: '{userName}'
-
-  UserMethodGet:
-    Type: 'AWS::ApiGateway::Method'
-    Properties:
-      RestApiId: !Ref Api
-      ResourceId: !Ref UserNameResource
-      HttpMethod: GET
-      ApiKeyRequired: false
-      AuthorizationType: NONE
-      RequestParameters:
-        method.request.path.userName: true
-      Integration:
-        Type: AWS
-        Credentials: !GetAtt APIGatewayRole.Arn
-        IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query'
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestParameters:
-          integration.request.path.userName: method.request.path.userName
-        RequestTemplates:
-          application/json: "{\n    \"TableName\":\"user\",\n    \"IndexName\":\"userName-Index\",\n    \"KeyConditionExpression\":\"userName_pk0=:v1\",\n    \"ExpressionAttributeValues\":\n    {\n        \":v1\":\n        {\"S\":\"$util.urlDecode($input.params('userName'))\"}\n    }\n}"
-        IntegrationResponses:
-          - StatusCode: '200'
-            ResponseTemplates:
-              application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"user\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"userName\": \"$field.userName_pk0.S\",\n\t\t\t\"firstName\": \"$field.firstName.S\",\n\t\t\t\"lastName\": \"$field.lastName.S\",\n\t\t\t\"postalCode\": \"$field.postalCode.N\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
-      MethodResponses:
-        - StatusCode: '200'
-
-
-  UserMethodUpdate:
-    Type: 'AWS::ApiGateway::Method'
-    Properties:
-      RestApiId: !Ref Api
-      ResourceId: !Ref UserNameResource
-      HttpMethod: PUT
-      ApiKeyRequired: false
-      AuthorizationType: NONE
-      RequestParameters:
-        method.request.path.userName: true
-      Integration:
-        Type: AWS
-        Credentials: !GetAtt APIGatewayRole.Arn
-        IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem'
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestParameters:
-          integration.request.path.userName: method.request.path.userName
-        RequestTemplates:
-          application/json: "\n{\n    \"TableName\": \"user\",\n    \"Key\": {\n        \"userName_pk0\": {\n            \"S\": \"$util.urlDecode($input.params('userName'))\"\n        }\n    },\n    \"UpdateExpression\": \"set postalCode = :pc, firstName = :fn, lastName = :ln\",\n    \"ExpressionAttributeValues\": {\n        \":pc\": {\"N\": \"$input.path('$.postalCode')\"},\n        \":fn\": {\"S\": \"$input.path('$.firstName')\"},\n        \":ln\": {\"S\": \"$input.path('$.lastName')\"}\n    },\n    \"ReturnValues\": \"ALL_NEW\"\n}"
-        IntegrationResponses:
-          - StatusCode: '200'
-            ResponseTemplates:
-              application/json: "{}"
-      MethodResponses:
-        - StatusCode: '200'
-
-  UserMethodDelete:
-    Type: 'AWS::ApiGateway::Method'
-    Properties:
-      RestApiId: !Ref Api
-      ResourceId: !Ref UserNameResource
-      HttpMethod: DELETE
-      ApiKeyRequired: false
-      AuthorizationType: NONE
-      RequestParameters:
-        method.request.path.userName: true
-      Integration:
-        Type: AWS
-        Credentials: !GetAtt APIGatewayRole.Arn
-        IntegrationHttpMethod: POST
-        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/DeleteItem'
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestParameters:
-          integration.request.path.userName: method.request.path.userName
-        RequestTemplates:
-          application/json: "{\n    \"TableName\": \"user\",\n    \"Key\": {\n        \"userName_pk0\": {\n            \"S\": \"$util.urlDecode($input.params('userName'))\"\n        }\n    }\n}"
-        IntegrationResponses:
-          - StatusCode: '200'
-            ResponseTemplates:
-              application/json: "{}"
-      MethodResponses:
-        - StatusCode: '200'
-
-
   ApiDeployment:
     Type: 'AWS::ApiGateway::Deployment'
     DependsOn:
@@ -220,11 +117,11 @@ Resources:
         - ApiId: !Ref Api
           Stage: !Sub '${StageName}'
       Throttle:
-        RateLimit: 500
-        BurstLimit: 1000
+        RateLimit: !Ref APIRateLimit
+        BurstLimit: !Ref APIBurstLimit
       UsagePlanName: !Sub '${AppName}-usage-plan'
       Quota:
-        Limit: 10000
+        Limit: !Ref APIQuota
         Period: MONTH
   ApiUsagePlanKey:
     Type: 'AWS::ApiGateway::UsagePlanKey'
@@ -232,6 +129,121 @@ Resources:
       KeyType: API_KEY
       KeyId: !Ref ApiKey
       UsagePlanId: !Ref ApiUsagePlan
+
+  UserResource:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.RootResourceId
+      PathPart: 'user'
+  UserNameResource:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !Ref UserResource
+      PathPart: '{userName}'
+
+
+  UserMethodPost:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref UserResource
+      HttpMethod: POST
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS
+        Credentials: !GetAtt APIGatewayRole.Arn
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem'
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates:
+          application/json: "{\n    \"TableName\":\"user\",\n    \"Item\":\n    {\n        \"id\":{\"S\":\"$context.requestId\"},\n        \"userName_pk0\":{\"S\":\"$input.path('$.userName')\"},\n        \"postalCode\":{\"N\":\"$input.path('$.postalCode')\"},\n        \"firstName\":{\"S\":\"$input.path('$.firstName')\"},\n        \"lastName\":{\"S\":\"$input.path('$.lastName')\"}\n    }\n}"
+        IntegrationResponses:
+          - StatusCode: '200'
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
+        - StatusCode: '200'
+  UserMethodGet:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref UserNameResource
+      HttpMethod: GET
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.userName: true
+      Integration:
+        Type: AWS
+        Credentials: !GetAtt APIGatewayRole.Arn
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query'
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.userName: method.request.path.userName
+        RequestTemplates:
+          application/json: "{\n    \"TableName\":\"user\",\n    \"IndexName\":\"userName-Index\",\n    \"KeyConditionExpression\":\"userName_pk0=:v1\",\n    \"ExpressionAttributeValues\":\n    {\n        \":v1\":\n        {\"S\":\"$util.urlDecode($input.params('userName'))\"}\n    }\n}"
+        IntegrationResponses:
+          - StatusCode: '200'
+            ResponseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\n{\n\t\"user\": [\n\t\t#foreach($field in $inputRoot.Items) {\n\t\t\t\"userName\": \"$field.userName_pk0.S\",\n\t\t\t\"firstName\": \"$field.firstName.S\",\n\t\t\t\"lastName\": \"$field.lastName.S\",\n\t\t\t\"postalCode\": \"$field.postalCode.N\"\n\t\t}#if($foreach.hasNext),#end\n\t\t#end\n\t]\n}"
+      MethodResponses:
+        - StatusCode: '200'
+  UserMethodUpdate:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref UserNameResource
+      HttpMethod: PUT
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.userName: true
+      Integration:
+        Type: AWS
+        Credentials: !GetAtt APIGatewayRole.Arn
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem'
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.userName: method.request.path.userName
+        RequestTemplates:
+          application/json: "\n{\n    \"TableName\": \"user\",\n    \"Key\": {\n        \"userName_pk0\": {\n            \"S\": \"$util.urlDecode($input.params('userName'))\"\n        }\n    },\n    \"UpdateExpression\": \"set postalCode = :pc, firstName = :fn, lastName = :ln\",\n    \"ExpressionAttributeValues\": {\n        \":pc\": {\"N\": \"$input.path('$.postalCode')\"},\n        \":fn\": {\"S\": \"$input.path('$.firstName')\"},\n        \":ln\": {\"S\": \"$input.path('$.lastName')\"}\n    },\n    \"ReturnValues\": \"ALL_NEW\"\n}"
+        IntegrationResponses:
+          - StatusCode: '200'
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
+        - StatusCode: '200'
+  UserMethodDelete:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref Api
+      ResourceId: !Ref UserNameResource
+      HttpMethod: DELETE
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.userName: true
+      Integration:
+        Type: AWS
+        Credentials: !GetAtt APIGatewayRole.Arn
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:dynamodb:action/DeleteItem'
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.path.userName: method.request.path.userName
+        RequestTemplates:
+          application/json: "{\n    \"TableName\": \"user\",\n    \"Key\": {\n        \"userName_pk0\": {\n            \"S\": \"$util.urlDecode($input.params('userName'))\"\n        }\n    }\n}"
+        IntegrationResponses:
+          - StatusCode: '200'
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
+        - StatusCode: '200'
 
 Outputs:
   ApiRootUrl:

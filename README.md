@@ -15,7 +15,8 @@ user table schema:
 
 sam deploy --template-file dynamo-api-CRUD.yaml --stack-name dynamo-api
 
-or 
+or
+
 sam deploy --template-file dynamo-api-CRUD.yaml --guided
 
 ```
