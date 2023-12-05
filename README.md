@@ -48,7 +48,7 @@ Create:
 POST
 /v1/user
 Body:
-'''
+```
 curl --location 'https://XXXXXXXXXX.execute-api.us-east-1.amazonaws.com/v1/user' \
 --header 'Content-Type: application/json' \
 --header 'x-api-key: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' \
@@ -58,20 +58,20 @@ curl --location 'https://XXXXXXXXXX.execute-api.us-east-1.amazonaws.com/v1/user'
     "lastName":"vesperman",
     "postalCode":"33333"
 }'
-'''
+```
 
 Read
 GET
 /v1/user/{username}
-'''
+```
 curl --location 'https://XXXXXXXXXX.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' \
 --header 'x-api-key: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-'''
+```
 
 Update
 PUT
 /v1/user/{username}
-'''
+```
 curl --location --request PUT 'https://XXXXXXXXXX.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' \
 --header 'Content-Type: application/json' \
 --header 'x-api-key: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' \
@@ -80,15 +80,15 @@ curl --location --request PUT 'https://XXXXXXXXXX.execute-api.us-east-1.amazonaw
     "lastName":"vesperman-smith",
     "postalCode":"55555"
 }'
-'''
+```
 
 Delete
 DELETE
 /v1/user/{username}
-'''
+```
 curl --location --request DELETE 'https://5cexo4w4kk.execute-api.us-east-1.amazonaws.com/v1/user/bvesperman' \
 --header 'x-api-key: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-'''
+```
 
 
 
